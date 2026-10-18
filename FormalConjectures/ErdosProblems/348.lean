@@ -42,8 +42,12 @@ $A = \{a_1 \leq a_2 \leq \cdots\}$ of integers such that
 
 Geneson [Ge26, Theorem 1] proved that the pairs are exactly those with $m \leq 1$.
 Completeness allows finitely many exceptions, and deletions remove indexed occurrences.
+
+A formal proof of this exact statement (formalizing Geneson's argument, including the
+central-interval theorem and the extension of complete finite deletions) is linked below.
 -/
-@[category research solved, question value, AMS 11]
+@[category research solved, question value, AMS 11, formal_proof using lean4 at
+  "https://github.com/IamMikeHelsel/erdos-348-lean/blob/3c73026398eeed70eb623159bfee953c965fd5c3/Solution.lean#L1114"]
 theorem erdos_348 :
     { (m, n) | (m) (n) (_ : m < n) (a : ℕ → ℕ) (_ : Monotone a)
       (_ : ∀ s, s.card = m → IsAddCompleteNatSeq' (Function.updateFinset a s 0))
