@@ -149,6 +149,51 @@ theorem a_odd (n : ℕ) : a (2 * n + 1) = d (2 * n + 1) := by
       exact ih2
     rw [ih1, ih2']
 
+/-- The even case of `conjecture1`: $c(2k) + d(2k) = -c(2k+1)$. -/
+@[category API, AMS 11]
+theorem cd_even (k : ℕ) : c (2 * k) + d (2 * k) = - c (2 * k + 1) := by
+  induction k using Nat.twoStepInduction with
+  | zero => rfl
+  | one => rfl
+  | more k ih1 ih2 =>
+    have h_eq : 2 * (k + 2) = 2 * k + 4 := by omega
+    have h_eq1 : 2 * (k + 1) = 2 * k + 2 := by omega
+    rw [h_eq]
+    rw [h_eq1] at ih2
+    have h1 : c (2 * k + 4) = -6 * c (2 * k + 2) - c (2 * k) := rfl
+    have h2 : d (2 * k + 4) = -6 * d (2 * k + 2) - d (2 * k) := rfl
+    have h3 : c (2 * k + 4 + 1) = -6 * c (2 * k + 2 + 1) - c (2 * k + 1) := rfl
+    rw [h1, h2, h3]
+    linear_combination (-6) * ih2 - ih1
+
+/-- The odd case of `conjecture1`: $c(2k+1) + d(2k+1) = c(2k)$. -/
+@[category API, AMS 11]
+theorem cd_odd (k : ℕ) : c (2 * k + 1) + d (2 * k + 1) = c (2 * k) := by
+  induction k using Nat.twoStepInduction with
+  | zero => rfl
+  | one => rfl
+  | more k ih1 ih2 =>
+    have h_eq : 2 * (k + 2) = 2 * k + 4 := by omega
+    have h_eq1 : 2 * (k + 1) = 2 * k + 2 := by omega
+    rw [h_eq]
+    rw [h_eq1] at ih2
+    have h1 : c (2 * k + 4 + 1) = -6 * c (2 * k + 2 + 1) - c (2 * k + 1) := rfl
+    have h2 : d (2 * k + 4 + 1) = -6 * d (2 * k + 2 + 1) - d (2 * k + 1) := rfl
+    have h3 : c (2 * k + 4) = -6 * c (2 * k + 2) - c (2 * k) := rfl
+    rw [h1, h2, h3]
+    linear_combination (-6) * ih2 - ih1
+
+/-- Every term of `d` is even. Four consecutive terms are stated so that the induction works. -/
+@[category API, AMS 11]
+theorem two_dvd_d_aux (n : ℕ) : 2 ∣ d n ∧ 2 ∣ d (n + 1) ∧ 2 ∣ d (n + 2) ∧ 2 ∣ d (n + 3) := by
+  induction n with
+  | zero => exact ⟨⟨1, rfl⟩, ⟨2, rfl⟩, ⟨-5, rfl⟩, ⟨-12, rfl⟩⟩
+  | succ n ih =>
+    refine ⟨ih.2.1, ih.2.2.1, ih.2.2.2, ?_⟩
+    have : d (n + 1 + 3) = -6 * d (n + 2) - d n := rfl
+    rw [this]
+    exact dvd_sub (dvd_mul_of_dvd_right ih.2.2.1 _) ih.1
+
 /--
 **Conjecture from Creighton Dement (A100434)**:
 Let the auxiliary sequences c, d, e, f, g, b be defined as specified.
@@ -160,10 +205,13 @@ through closed identities between consecutive terms of the relevant pair of sequ
 (here $c, d$), and the induction step is discharged by `rfl`-level unfolding of the definitions
 plus linear arithmetic. (Numerically verified for $n < 600$ before formalization.)
 -/
-@[category research solved, AMS 11, formal_proof using formal_conjectures at
-"https://github.com/chy4pro/formal-conjectures/blob/32f88077a444b83741f1db6734390eebd3678ecf/FormalConjectures/OEIS/100434.lean#L287"]
+@[category research solved, AMS 11]
 theorem conjecture1 (n : ℕ) : c n + d n = b n := by
-  sorry
+  obtain ⟨k, rfl | rfl⟩ := Nat.even_or_odd' n
+  · rw [cd_even]
+    simp [b]
+  · rw [cd_odd]
+    simp [b, Nat.add_mod]
 
 /--
 **Conjecture from Creighton Dement (A100434)**:
@@ -176,10 +224,25 @@ through closed identities between consecutive terms of the relevant pair of sequ
 (here $e, f$), and the induction step is discharged by `rfl`-level unfolding of the definitions
 plus linear arithmetic. (Numerically verified for $n < 600$ before formalization.)
 -/
-@[category research solved, AMS 11, formal_proof using formal_conjectures at
-"https://github.com/chy4pro/formal-conjectures/blob/32f88077a444b83741f1db6734390eebd3678ecf/FormalConjectures/OEIS/100434.lean#L306"]
+@[category research solved, AMS 11]
 theorem conjecture2 (n : ℕ) : e n + f n = b n := by
-  sorry
+  obtain ⟨p, hp⟩ := (two_dvd_d_aux (2 * (n / 2))).1
+  obtain ⟨q, hq⟩ := (two_dvd_d_aux (2 * (n / 2))).2.1
+  have h1 := cd_even (n / 2)
+  have h2 := cd_odd (n / 2)
+  obtain ⟨k, rfl | rfl⟩ := Nat.even_or_odd' n
+  · simp only [e, f, b, Nat.mul_mod_right, if_true, Nat.mul_div_cancel_left _ two_pos] at *
+    rw [hp, hq, Int.mul_ediv_cancel_left _ two_ne_zero, Int.mul_ediv_cancel_left _ two_ne_zero]
+    rw [hp] at h1
+    rw [hq] at h2
+    linarith
+  · have hk : (2 * k + 1) / 2 = k := by omega
+    have hm : (2 * k + 1) % 2 = 1 := by omega
+    simp only [e, f, b, hk, hm, Nat.add_sub_cancel, one_ne_zero, if_false] at *
+    rw [hp, hq, Int.mul_ediv_cancel_left _ two_ne_zero, Int.mul_ediv_cancel_left _ two_ne_zero]
+    rw [hp] at h1
+    rw [hq] at h2
+    linarith
 
 /--
 **Conjecture from Creighton Dement (A100434)**:
@@ -192,9 +255,13 @@ through closed identities between consecutive terms of the relevant pair of sequ
 (here $g, a$), and the induction step is discharged by `rfl`-level unfolding of the definitions
 plus linear arithmetic. (Numerically verified for $n < 600$ before formalization.)
 -/
-@[category research solved, AMS 11, formal_proof using formal_conjectures at
-"https://github.com/chy4pro/formal-conjectures/blob/32f88077a444b83741f1db6734390eebd3678ecf/FormalConjectures/OEIS/100434.lean#L335"]
+@[category research solved, AMS 11]
 theorem conjecture3 (n : ℕ) : g n + a n = b n := by
-  sorry
+  obtain ⟨k, rfl | rfl⟩ := Nat.even_or_odd' n
+  · rw [a_even]
+    simp [g, b]
+  · rw [a_odd]
+    simp [g, b, Nat.add_mod]
+    exact cd_odd k
 
 end OeisA100434
