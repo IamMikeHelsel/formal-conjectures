@@ -110,15 +110,14 @@ theorem alpha_le_one_not_isGoodPair (t α : ℝ) (ht : 0 < t) (hα0 : 0 < α) (h
   sorry
 
 /-- **Binary expansion.** Every natural number $k$ is a sum of distinct powers of two: there is
-a finite set $E$ of exponents with $k = \sum_{i \in E} 2^i$. Proved by strong induction:
-subtract the largest power $2^m \le k$, recurse on the remainder. A textbook-level building
+a finite set $E$ of exponents with $k = \sum_{i \in E} 2^i$. Take $E$ to be the set of
+positions of the binary digits of $k$ that are equal to $1$. A textbook-level building
 block for `one_two_isGoodPair` below; it says nothing about `IsGoodPair` itself. -/
-@[category textbook, AMS 11,
-  formal_proof using formal_conjectures at
-  "https://github.com/cepadugato/formal-conjectures/blob/19e39e33be27d46713a423263d38312fe40c9e78/FormalConjectures/ErdosProblems/349.lean#L319"]
+@[category textbook, AMS 11]
 theorem exists_finsetSum_two_pow (k : ℕ) :
     ∃ E : Finset ℕ, k = ∑ i ∈ E, 2 ^ i := by
-  sorry
+  refine ⟨k.bitIndices.toFinset, ?_⟩
+  rw [List.sum_toFinset _ Nat.bitIndices_nodup, Nat.sum_map_two_pow_bitIndices]
 
 /-- **The pair $(1, 2)$ is good.** The powers of two $\lfloor 1\cdot 2^n\rfloor = 2^n$ form an
 additively complete set: every $k \ge 1$ is a finite sum of distinct powers of two. -/
