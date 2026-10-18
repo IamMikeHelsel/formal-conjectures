@@ -113,9 +113,18 @@ theorem conjecture_parity (n : ℕ) (hn : 1 ≤ n) :
 
 Lean formalization by Wentao Li, with AI assistance; see [Li26].
 -/
-@[category research solved, AMS 11,
-  formal_proof using lean4 at "https://github.com/VictorLiwentao/lean-oeis-proofs/blob/0a23974e54b90afd1453ef02c27cf8f617bad940/LeanOeisProofs/NewFormalization/A397588.lean#L325"]
+@[category research solved, AMS 11]
 theorem three_dvd_a (n : ℕ) (hn : 1 < n) : 3 ∣ a n := by
-  sorry
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+    rcases Nat.lt_or_ge n 3 with h | h
+    · obtain rfl : n = 2 := by omega
+      rw [a_2]
+    · rw [a_of_gt_one hn]
+      refine Dvd.dvd.mul_left (Finset.dvd_sum fun k hk => ?_) _
+      rw [Finset.mem_Icc] at hk
+      rcases Nat.lt_or_ge 1 k with hk1 | hk1
+      · exact Dvd.dvd.mul_right (ih k (by omega) hk1) _
+      · exact Dvd.dvd.mul_left (ih (n - k) (by omega) (by omega)) _
 
 end OeisA397588
