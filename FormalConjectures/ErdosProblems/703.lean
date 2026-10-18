@@ -73,7 +73,36 @@ theorem erdos_703 :
 /-- It is trivial that $T(n,0)=2^{n-1}$. -/
 @[category textbook, AMS 5]
 theorem erdos_703.variants.zero (n : ℕ) (hn : 1 ≤ n) : T n 0 = 2 ^ (n - 1) := by
-  sorry
+  classical
+  have hpow : 2 ^ n = 2 * 2 ^ (n - 1) := by
+    rw [← pow_succ']; congr 1; omega
+  have hbdd : BddAbove {k | ∃ 𝓕 : Finset (Finset (Fin n)),
+      (∀ A ∈ 𝓕, ∀ B ∈ 𝓕, (A ∩ B).card ≠ 0) ∧ 𝓕.card = k} := by
+    refine ⟨2 ^ n, ?_⟩
+    rintro k ⟨𝓕, -, rfl⟩
+    simpa [Fintype.card_finset] using 𝓕.card_le_univ
+  let i : Fin n := ⟨0, by omega⟩
+  let 𝓕₀ : Finset (Finset (Fin n)) := ((univ : Finset (Fin n)).erase i).powerset.image (insert i)
+  have hcard : 𝓕₀.card = 2 ^ (n - 1) := by
+    rw [card_image_of_injOn, card_powerset, card_erase_of_mem (mem_univ _), card_univ,
+      Fintype.card_fin]
+    intro A hA B hB h
+    simp only [coe_powerset, Set.mem_preimage, mem_coe, Set.mem_powerset_iff, coe_erase,
+      coe_univ, Set.subset_sdiff, Set.disjoint_singleton_right] at hA hB
+    rw [← erase_insert hA.2, h, erase_insert hB.2]
+  refine le_antisymm (csSup_le ⟨0, ∅, by simp, by simp⟩ ?_) (le_csSup hbdd ⟨𝓕₀, ?_, hcard⟩)
+  · rintro k ⟨𝓕, h𝓕, rfl⟩
+    have hint : (𝓕 : Set (Finset (Fin n))).Intersecting := by
+      intro A hA B hB hdis
+      exact h𝓕 A hA B hB (by rw [disjoint_iff_inter_eq_empty.1 hdis]; simp)
+    have := hint.card_le
+    rw [Fintype.card_finset, Fintype.card_fin, hpow] at this
+    omega
+  · intro A hA B hB
+    simp only [𝓕₀, mem_image] at hA hB
+    obtain ⟨A', -, rfl⟩ := hA
+    obtain ⟨B', -, rfl⟩ := hB
+    exact Finset.card_ne_zero.2 ⟨i, by simp⟩
 
 /--
 Frankl and Füredi [FrFu84b] proved that, for fixed $r$ and $n$ sufficiently large in terms of
