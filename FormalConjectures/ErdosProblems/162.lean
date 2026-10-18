@@ -76,14 +76,6 @@ theorem erdos_162.variants.bounds (α : ℝ) (h0 : 0 ≤ α) (h1 : α < 1 / 2) :
       c₁ * Real.log n < F n α ∧ (F n α : ℝ) < c₂ * Real.log n := by
   sorry
 
-/--
-At $\alpha = 1/2$ the two colour counts in $H$ add up to $\binom{|H|}{2}$, so both cannot exceed
-half of it. Hence $F(n, 1/2) = n + 1$, and the claim fails at $\alpha = 1/2$.
--/
-@[category textbook, AMS 5]
-theorem erdos_162.variants.half (n : ℕ) : F n (1 / 2) = n + 1 := by
-  sorry
-
 /-- `k = n + 1` always works, since no vertex set has more than `n` elements. -/
 @[category API, AMS 5]
 theorem isBalancedAbove_succ (n : ℕ) (α : ℝ) (c : Sym2 (Fin n) → Bool) :
@@ -97,5 +89,49 @@ theorem isBalancedAbove_succ (n : ℕ) (α : ℝ) (c : Sym2 (Fin n) → Bool) :
 @[category API, AMS 5]
 theorem F_le_succ (n : ℕ) (α : ℝ) : F n α ≤ n + 1 :=
   Nat.sInf_le ⟨fun _ ↦ true, isBalancedAbove_succ n α _⟩
+
+open Finset in
+/-- The non-diagonal elements of `H.sym2` are the images of the off-diagonal pairs of `H`. -/
+@[category API, AMS 5]
+theorem filter_not_isDiag_eq {n : ℕ} (H : Finset (Fin n)) :
+    H.sym2.filter (fun e ↦ ¬ e.IsDiag) = H.offDiag.image (Function.uncurry Sym2.mk) := by
+  ext e
+  induction e using Sym2.ind with
+  | _ a b =>
+    simp only [mem_filter, mem_sym2_iff, Sym2.mem_iff, forall_eq_or_imp, forall_eq,
+      Sym2.mk_isDiag_iff, mem_image, mem_offDiag, Prod.exists, Function.uncurry_apply_pair,
+      Sym2.eq_iff]
+    aesop
+
+open Finset in
+/-- The two colour counts in `H` add up to $\binom{|H|}{2}$. -/
+@[category API, AMS 5]
+theorem colourEdgeCount_add {n : ℕ} (c : Sym2 (Fin n) → Bool) (H : Finset (Fin n)) :
+    colourEdgeCount c H true + colourEdgeCount c H false = H.card.choose 2 := by
+  unfold colourEdgeCount
+  rw [← Sym2.card_image_offDiag, ← filter_not_isDiag_eq, ← filter_filter, ← filter_filter]
+  convert card_filter_add_card_filter_not (fun e ↦ c e = true) using 3
+  simp
+
+open Finset in
+/--
+At $\alpha = 1/2$ the two colour counts in $H$ add up to $\binom{|H|}{2}$, so both cannot exceed
+half of it. Hence $F(n, 1/2) = n + 1$, and the claim fails at $\alpha = 1/2$.
+-/
+@[category textbook, AMS 5]
+theorem erdos_162.variants.half (n : ℕ) : F n (1 / 2) = n + 1 := by
+  refine le_antisymm (F_le_succ n _)
+    (le_csInf ⟨n + 1, fun _ ↦ true, isBalancedAbove_succ n _ _⟩ ?_)
+  rintro k ⟨c, hc⟩
+  by_contra! hk
+  have h1 := hc univ (by simpa using Nat.lt_succ_iff.1 hk) true
+  have h2 := hc univ (by simpa using Nat.lt_succ_iff.1 hk) false
+  have h3 := colourEdgeCount_add c univ
+  rw [card_univ, Fintype.card_fin] at h1 h2 h3
+  have : ((colourEdgeCount c univ true + colourEdgeCount c univ false : ℕ) : ℝ) =
+      n.choose 2 := by
+    exact_mod_cast h3
+  push_cast at this
+  linarith
 
 end Erdos162
