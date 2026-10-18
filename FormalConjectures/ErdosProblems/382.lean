@@ -50,6 +50,7 @@ theorem largestPrimeRepeated_48_50 : LargestPrimeRepeated 48 50 := by
   unfold LargestPrimeRepeated
   decide +kernel
 
+open Finset in
 /-- If the condition holds, then $v < 2u$.
 
 Otherwise $2u \leq v$, and by Bertrand's postulate there is a prime $q$ with $v/2 < q \leq v$, so
@@ -58,7 +59,34 @@ divides exactly one factor $m \in [u, v]$, namely $m = p$, and $p$ appears with 
 @[category textbook, AMS 11]
 theorem lt_two_mul_of_largestPrimeRepeated {u v : ℕ} (h : LargestPrimeRepeated u v) :
     v < 2 * u := by
-  sorry
+  obtain ⟨hu, huv, hv2, hdvd⟩ := h
+  by_contra! h2u
+  set P := Nat.maxPrimeFac (∏ m ∈ Icc u v, m) with hP
+  have hprod1 : 1 < ∏ m ∈ Icc u v, m := by
+    have hpos : 0 < ∏ m ∈ Icc u v, m :=
+      Finset.prod_pos fun m hm => by have := (mem_Icc.1 hm).1; omega
+    have := Nat.le_of_dvd hpos (Finset.dvd_prod_of_mem _ (mem_Icc.2 ⟨huv, le_rfl⟩))
+    omega
+  have hPp : P.Prime := Nat.prime_maxPrimeFac_of_one_lt _ hprod1
+  -- Bertrand: a prime `q` with `v / 2 < q ≤ v`, so `q ∈ [u, v]`.
+  obtain ⟨q, hq, hq1, hq2⟩ := Nat.exists_prime_lt_and_le_two_mul (v / 2) (by omega)
+  have hqmem : q ∈ Icc u v := mem_Icc.2 ⟨by omega, by omega⟩
+  have hqP : q ≤ P := Nat.le_maxPrimeFac (by omega) hq (Finset.dvd_prod_of_mem _ hqmem)
+  -- Any element of `[u, v]` divisible by `P` equals `P`.
+  have key : ∀ m ∈ Icc u v, P ∣ m → m = P := by
+    intro m hm hPm
+    obtain ⟨t, rfl⟩ := hPm
+    have hm' := mem_Icc.1 hm
+    have ht : t < 2 := by
+      by_contra! ht
+      have : P * 2 ≤ P * t := Nat.mul_le_mul_left _ ht
+      omega
+    interval_cases t <;> simp_all
+  obtain ⟨m, hm, hPm⟩ := (hPp.prime.dvd_finsetProd_iff _).1 Nat.maxPrimeFac_dvd
+  obtain rfl := key m hm hPm
+  rw [← Finset.mul_prod_erase _ _ hm, pow_two, Nat.mul_dvd_mul_iff_left hPp.pos] at hdvd
+  obtain ⟨m', hm', hPm'⟩ := (hPp.prime.dvd_finsetProd_iff _).1 hdvd
+  exact (Finset.ne_of_mem_erase hm') (key m' (Finset.mem_of_mem_erase hm') hPm')
 
 /--
 Let $u \leq v$ be such that the largest prime dividing $\prod_{u \leq m \leq v} m$ appears with
