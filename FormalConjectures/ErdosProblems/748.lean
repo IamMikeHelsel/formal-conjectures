@@ -66,7 +66,32 @@ since $n/2 + n/2 = n$. -/
 @[category textbook, AMS 5 11]
 theorem erdos_748.variants.lower_bound (n : ℕ) :
     (2 : ℝ) ^ ((n : ℝ) / 2) ≤ (f n : ℝ) := by
-  sorry
+  classical
+  have hsub : (Finset.Ioc (n / 2) n).powerset ⊆
+      (Finset.Icc 1 n).powerset.filter fun A : Finset ℕ ↦ IsSumFree (A : Set ℕ) := by
+    intro A hA
+    rw [Finset.mem_powerset] at hA
+    rw [Finset.mem_filter, Finset.mem_powerset]
+    refine ⟨hA.trans fun x hx => ?_, ?_⟩
+    · rw [Finset.mem_Ioc] at hx
+      rw [Finset.mem_Icc]
+      omega
+    · rw [isSumFree_iff]
+      intro a ha b hb hab
+      simp only [Finset.mem_coe] at ha hb hab
+      have := Finset.mem_Ioc.1 (hA ha)
+      have := Finset.mem_Ioc.1 (hA hb)
+      have := Finset.mem_Ioc.1 (hA hab)
+      omega
+  have hcard := Finset.card_le_card hsub
+  rw [Finset.card_powerset, Nat.card_Ioc] at hcard
+  have h : (n : ℝ) / 2 ≤ ((n - n / 2 : ℕ) : ℝ) := by
+    rw [div_le_iff₀ two_pos]
+    exact_mod_cast (by omega : n ≤ (n - n / 2) * 2)
+  calc (2 : ℝ) ^ ((n : ℝ) / 2) ≤ 2 ^ ((n - n / 2 : ℕ) : ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le one_le_two h
+    _ = ((2 ^ (n - n / 2) : ℕ) : ℝ) := by rw [Real.rpow_natCast]; push_cast; rfl
+    _ ≤ f n := by exact_mod_cast hcard
 
 /-- Green [Gr04] and Sapozhenko [Sa03] proved that $f(n) \ll 2^{n/2}$. -/
 @[category research solved, AMS 5 11]
