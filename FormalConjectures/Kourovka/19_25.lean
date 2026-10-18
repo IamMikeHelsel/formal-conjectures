@@ -22,7 +22,13 @@ public import FormalConjecturesUtil
 
 by B. Curtin, G. R. Pourgholi
 
-*Reference:* [The Kourovka Notebook](https://arxiv.org/abs/1401.0300v40)
+The answer is no. The simple group $\mathrm{PSU}(3, 3)$ and a non-simple group of the same order
+$6048$ both have totient sum $23984$ [vDJMM, Theorem 4.1].
+
+*References:*
+- [The Kourovka Notebook](https://arxiv.org/abs/1401.0300v48), Problem 19.25.
+- [vDJMM] W. van Doorn, E. Judin, P. Monticone and D. Morrison, *On some problems from the
+  Kourovka Notebook*, [arXiv:2607.17477](https://arxiv.org/abs/2607.17477).
 -/
 
 @[expose] public section
@@ -37,12 +43,14 @@ $\sum_{g \in G} \phi(|g|) = \sum_{h \in H} \phi(|h|)$,
 where $\phi$ is the Euler totient function. Suppose that $G$ is simple. Is
 $H$ necessarily simple?
 -/
-@[category research open, question, AMS 20]
+@[category research solved, question, AMS 20,
+  formal_proof using lean4 at
+    "https://github.com/pitmonticone/Kourovka/blob/dcfdbdad8c434e30f6151fb3b4343364d70eeed4/Kourovka/Problem_19_25.lean#L57-L62"]
 theorem kourovka_19_25 :
-    ∀ (G H : Type) [Group G] [Group H] [Fintype G] [Fintype H],
-       Fintype.card G = Fintype.card H →
-       ∑ g : G, φ (orderOf g) = ∑ h : H, φ (orderOf h) →
-       IsSimpleGroup G → IsSimpleGroup H := by
+    ¬ ∀ (G H : Type) [Group G] [Group H] [Fintype G] [Fintype H],
+        Fintype.card G = Fintype.card H →
+        ∑ g : G, φ (orderOf g) = ∑ h : H, φ (orderOf h) →
+        IsSimpleGroup G → IsSimpleGroup H := by
   sorry
 
 end Kourovka.«19.25»
