@@ -70,7 +70,31 @@ theorem universalSpectrumBounded_le (τ : ℝ) :
 
 @[category test, AMS 30]
 theorem integralMeansSpectrum_id (τ : ℝ) : integralMeansSpectrum id τ = 0 := by
-  sorry
+  have hfun : (fun r : ℝ => Real.log (∫ θ in Ioc (-Real.pi) Real.pi,
+        ‖deriv id (r • exp (Complex.I * θ))‖ ^ τ) / |Real.log (1 - r)|) =
+      fun r => Real.log (2 * Real.pi) * (|Real.log (1 - r)|)⁻¹ := by
+    funext r
+    simp only [deriv_id, norm_one, Real.one_rpow, setIntegral_const, smul_eq_mul, mul_one,
+      div_eq_mul_inv]
+    congr 2
+    rw [measureReal_def, Real.volume_Ioc, ENNReal.toReal_ofReal (by linarith [Real.pi_pos])]
+    ring
+  unfold integralMeansSpectrum
+  rw [hfun]
+  apply Filter.Tendsto.limsup_eq
+  have h1 : Tendsto (fun r : ℝ => 1 - r) (𝓝[<] 1) (𝓝[>] 0) := by
+    apply tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within
+    · have : Tendsto (fun r : ℝ => 1 - r) (𝓝 1) (𝓝 (1 - 1)) := tendsto_const_nhds.sub tendsto_id
+      rw [sub_self] at this
+      exact this.mono_left nhdsWithin_le_nhds
+    · filter_upwards [self_mem_nhdsWithin] with r hr
+      simp only [Set.mem_Iio] at hr
+      simp only [Set.mem_Ioi]
+      linarith
+  have h2 : Tendsto (fun r : ℝ => |Real.log (1 - r)|) (𝓝[<] 1) atTop :=
+    Filter.tendsto_abs_atBot_atTop.comp (Real.tendsto_log_nhdsGT_zero.comp h1)
+  have h3 := h2.inv_tendsto_atTop
+  simpa using h3.const_mul (Real.log (2 * Real.pi))
 
 /-- Brennan's conjecture, part 1: $B(-2) = 1$.
 
