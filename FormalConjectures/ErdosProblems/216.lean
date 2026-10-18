@@ -29,6 +29,9 @@ public import FormalConjecturesUtil
   239--272.
 - [HeSc24] Heule, Marijn J. H. and Scheucher, Manfred, *Happy Ending: An Empty Hexagon in Every Set
   of $30$ Points*. (2024).
+- [SNGCCH24] Subercaseaux, Bernardo and Nawrocki, Wojciech and Gallicchio, James and Codel,
+  Cayden and Carneiro, Mario and Heule, Marijn J. H., *Formal Verification of the Empty Hexagon
+  Number*. ITP 2024, arXiv:2403.17370.
 -/
 
 @[expose] public section
@@ -68,7 +71,9 @@ Heule and Scheucher [HeSc24] have proved that $g(6)=30$.
 
 This problem is #2 in Ramsey Theory in the graphs problem collection.
 -/
-@[category research solved, AMS 52]
+@[category research solved, AMS 52,
+  formal_proof using lean4 at
+    "https://github.com/IamMikeHelsel/lean-erdos-proofs/blob/9a0a98b8560545adcb69dced593475dbf7c36d60/Solution.lean#L946"]
 theorem erdos_216 : (∀ k ≥ 3, (cardSet k).Nonempty) ↔ answer(False) := by
   sorry
 
@@ -81,13 +86,23 @@ theorem empty_zero (P : Set ℝ²) : HasEmptyConvexNGon 0 P := by
   · intro p hp
     simp [convexHull_empty]
 
-/-- Erdős observed $g(4)=5$ (as with the happy ending problem). -/
-@[category research solved, AMS 52]
+/-- Erdős observed $g(4)=5$ (as with the happy ending problem).
+
+Formally verified in Lean [SNGCCH24]; see `erdos_216.variants.g6` for the caveats on the axioms
+that proof uses. -/
+@[category research solved, AMS 52,
+  formal_proof using lean4 at
+    "https://github.com/bsubercaseaux/EmptyHexagonLean/blob/3073981d2aa5aa1e399b382e605c0ed12a0b69af/Lean/Geo.lean#L80"]
 theorem erdos_216.variants.g4 : (cardSet 4).Nonempty ∧ g 4 = 5 := by
   sorry
 
-/-- Harborth [Ha78] showed $g(5)=10$. -/
-@[category research solved, AMS 52]
+/-- Harborth [Ha78] showed $g(5)=10$.
+
+Formally verified in Lean [SNGCCH24]; see `erdos_216.variants.g6` for the caveats on the axioms
+that proof uses. -/
+@[category research solved, AMS 52,
+  formal_proof using lean4 at
+    "https://github.com/bsubercaseaux/EmptyHexagonLean/blob/3073981d2aa5aa1e399b382e605c0ed12a0b69af/Lean/Geo.lean#L87"]
 theorem erdos_216.variants.g5 : (cardSet 5).Nonempty ∧ g 5 = 10 := by
   sorry
 
@@ -96,13 +111,25 @@ theorem erdos_216.variants.g5 : (cardSet 5).Nonempty ∧ g 5 = 10 := by
 theorem erdos_216.variants.g6_exists : (cardSet 6).Nonempty := by
   sorry
 
-/-- Heule and Scheucher [HeSc24] have proved that $g(6)=30$. -/
-@[category research solved, AMS 52]
+/-- Heule and Scheucher [HeSc24] have proved that $g(6)=30$. This was formally verified in
+Lean [SNGCCH24].
+
+The formal proof [SNGCCH24] is stated for `Fin 2 → ℝ` with closed-hull emptiness and a
+determinant-based general-position condition. For points in general position this is
+equivalent to the statement here. Besides the standard axioms, it depends on an axiom
+asserting that a CNF formula is unsatisfiable (checked outside Lean with `cadical` and the
+verified checker `cake_lpr`), on `Lean.ofReduceBool` (`native_decide`, for the lower-bound
+point set) and on the project-local axiom `mathlibSorry` for some library lemmas. -/
+@[category research solved, AMS 52,
+  formal_proof using lean4 at
+    "https://github.com/bsubercaseaux/EmptyHexagonLean/blob/3073981d2aa5aa1e399b382e605c0ed12a0b69af/Lean/Geo.lean#L100"]
 theorem erdos_216.variants.g6 : g 6 = 30 := by
   sorry
 
 /-- Horton [Ho83] showed that $g(n)$ does not exist for $n\geq 7$. -/
-@[category research solved, AMS 52]
+@[category research solved, AMS 52,
+  formal_proof using lean4 at
+    "https://github.com/IamMikeHelsel/lean-erdos-proofs/blob/9a0a98b8560545adcb69dced593475dbf7c36d60/Solution.lean#L932"]
 theorem erdos_216.variants.horton : ∀ n ≥ 7, cardSet n = ∅ := by
   sorry
 
