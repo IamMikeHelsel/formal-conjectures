@@ -31,6 +31,8 @@ public import FormalConjecturesUtil
   arXiv:2412.07708 (2024).
 - [JaYi25] Janzer, O. and Yip, F., Short monochromatic odd cycles.
   arXiv:2506.14910 (2025).
+- [Ca26] Cai, J., [$f(3) = 5$](https://botnet.com/artifacts/32a10c8d-fd77-46db-9059-96f3d71ac10b)
+  (2026).
 -/
 
 @[expose] public section
@@ -67,6 +69,17 @@ then there must be a monochromatic odd cycle of length at most $m$. Estimate $f(
 @[category research open, question value, AMS 5]
 theorem erdos_609 :
     (fun n ↦ (f n : ℝ)) =Θ[atTop] erdos_609.answer := by
+  sorry
+
+/--
+The small case $f(3) = 5$: every $3$-colouring of the edges of $K_9$ contains a monochromatic
+triangle or a monochromatic $5$-cycle, and some $3$-colouring of the edges of $K_9$ has no
+monochromatic triangle. This was claimed by Cai [Ca26], based on an automated search.
+-/
+@[category research solved, AMS 5,
+  formal_proof using lean4 at
+    "https://github.com/IamMikeHelsel/lean-erdos-proofs/blob/7915ff41a0ad67445fd3dba137bee70e59bea92b/ErdosProofs/Erdos609.lean#L8239"]
+theorem erdos_609.variants.f_three : f 3 = 5 := by
   sorry
 
 -- TODO: Add variants of the problem.
