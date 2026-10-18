@@ -76,15 +76,62 @@ must contain a monochromatic arithmetic progression of length `k`.
 -/
 noncomputable abbrev W : ℕ → ℕ := monoAPNumber 2
 
-@[category test, AMS 11,
-formal_proof using formal_conjectures at "https://github.com/XC0R/formal-conjectures/blob/55a6458d655c56201904e417d25d7289dc7c5306/FormalConjectures/ErdosProblems/138.lean#L79"]
+@[category test, AMS 11]
 theorem monoAPNumber_two_one : W 1 = 1 := by
-  sorry
+  have h1 : 1 ∈ monoAP_guarantee_set 2 1 := by
+    intro coloring
+    refine ⟨coloring ⟨1, by simp⟩, {⟨1, by simp⟩}, ?_, by simp⟩
+    rw [Set.image_singleton, Nat.cast_one, Set.IsAPOfLength.one]
+    exact ⟨1, rfl⟩
+  have h0 : 0 ∉ monoAP_guarantee_set 2 1 := by
+    intro h
+    obtain ⟨c, ap, hap, -⟩ := h fun _ => 0
+    rw [Nat.cast_one, Set.IsAPOfLength.one] at hap
+    obtain ⟨a, ha⟩ := hap
+    have : a ∈ (fun x => x.1) '' ap := ha ▸ rfl
+    obtain ⟨⟨m, hm⟩, -, -⟩ := this
+    simp at hm
+  refine le_antisymm (Nat.sInf_le h1) (le_csInf ⟨1, h1⟩ fun N hN => ?_)
+  by_contra! h
+  obtain rfl : N = 0 := by omega
+  exact h0 hN
 
-@[category test, AMS 11,
-formal_proof using formal_conjectures at "https://github.com/XC0R/formal-conjectures/blob/55a6458d655c56201904e417d25d7289dc7c5306/FormalConjectures/ErdosProblems/138.lean#L142"]
+@[category test, AMS 11]
 theorem monoAPNumber_two_two : W 2 = 3 := by
-  sorry
+  have h3 : 3 ∈ monoAP_guarantee_set 2 2 := by
+    intro coloring
+    obtain ⟨x, y, hxy, hc⟩ := Fintype.exists_ne_map_eq_of_card_lt coloring (by simp)
+    refine ⟨coloring x, {x, y}, ?_, ?_⟩
+    · rw [Set.image_pair, Nat.cast_ofNat]
+      have hne : x.1 ≠ y.1 := fun h => hxy (Subtype.ext h)
+      rcases lt_or_gt_of_ne hne with h | h
+      · exact Nat.isAPOfLength_pair h
+      · rw [Set.pair_comm]
+        exact Nat.isAPOfLength_pair h
+    · rintro m (rfl | rfl)
+      · rfl
+      · exact hc.symm
+  have hbad : ∀ N, N ≤ 2 → N ∉ monoAP_guarantee_set 2 2 := by
+    intro N hN h
+    obtain ⟨c, ap, hap, hcol⟩ := h fun m => if m.1 = 1 then 0 else 1
+    have hcard := hap.card
+    rw [Nat.cast_ofNat, ← Set.encard, Set.encard_eq_two] at hcard
+    obtain ⟨u, v, huv, huv'⟩ := hcard
+    have hu : u ∈ (fun x => x.1) '' ap := huv' ▸ (by simp)
+    have hv : v ∈ (fun x => x.1) '' ap := huv' ▸ (by simp)
+    obtain ⟨⟨u', hu'⟩, hu'ap, rfl⟩ := hu
+    obtain ⟨⟨v', hv'⟩, hv'ap, rfl⟩ := hv
+    have hcu := hcol _ hu'ap
+    have hcv := hcol _ hv'ap
+    have hu'' := Finset.mem_Icc.1 (Finset.mem_coe.1 hu')
+    have hv'' := Finset.mem_Icc.1 (Finset.mem_coe.1 hv')
+    have : u' = 1 ∨ u' = 2 := by omega
+    have : v' = 1 ∨ v' = 2 := by omega
+    rcases this with rfl | rfl <;> rcases ‹u' = 1 ∨ u' = 2› with rfl | rfl <;> simp_all <;>
+      exact absurd (hcu.trans hcv.symm) (by decide)
+  refine le_antisymm (Nat.sInf_le h3) (le_csInf ⟨3, h3⟩ fun N hN => ?_)
+  by_contra! h
+  exact hbad N (by omega) hN
 
 /--
 In [Er80] Erdős asks whether
