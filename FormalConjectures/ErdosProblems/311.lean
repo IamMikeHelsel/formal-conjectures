@@ -63,7 +63,39 @@ with denominator dividing $[1, \ldots, N]$, so $\delta(N) \geq 1/[1,\ldots,N]$.
 -/
 @[category textbook, AMS 11]
 theorem delta_ge_inv_lcm (N : ℕ) : 1 / (((Icc 1 N).lcm id : ℕ) : ℝ) ≤ delta N := by
-  sorry
+  set L := (Icc 1 N).lcm id with hL
+  have hL0 : 0 < L := by
+    rw [hL, Nat.pos_iff_ne_zero, Ne, Finset.lcm_eq_zero_iff]
+    simp
+  have hLR : (0 : ℝ) < L := by exact_mod_cast hL0
+  unfold delta
+  refine le_csInf ?_ ?_
+  · exact ⟨1, one_ne_zero, ∅, empty_subset _, by simp⟩
+  rintro x ⟨hx0, A, hA, rfl⟩
+  have hdvd : ∀ n ∈ A, n ∣ L := fun n hn => Finset.dvd_lcm (hA hn)
+  have hpos : ∀ n ∈ A, (n : ℝ) ≠ 0 := fun n hn => by
+    have := (mem_Icc.1 (hA hn)).1
+    positivity
+  set z : ℤ := L - ∑ n ∈ A, ((L / n : ℕ) : ℤ) with hz
+  have hzR : (z : ℝ) = (L : ℝ) * (1 - ∑ n ∈ A, (1 : ℝ) / n) := by
+    rw [hz, Int.cast_sub, Int.cast_natCast, Int.cast_sum]
+    simp only [Int.cast_natCast]
+    rw [mul_sub, mul_one, Finset.mul_sum]
+    congr 1
+    refine Finset.sum_congr rfl fun n hn => ?_
+    rw [Nat.cast_div (hdvd n hn) (hpos n hn)]
+    ring
+  have hz0 : z ≠ 0 := by
+    intro h
+    apply hx0
+    rw [h, Int.cast_zero] at hzR
+    rcases mul_eq_zero.1 hzR.symm with h' | h'
+    · exact absurd h' hLR.ne'
+    · rw [h', abs_zero]
+  have h1 : (1 : ℝ) ≤ |(z : ℝ)| := by exact_mod_cast Int.one_le_abs hz0
+  rw [hzR, abs_mul, abs_of_pos hLR] at h1
+  rw [div_le_iff₀ hLR]
+  linarith [mul_comm (L : ℝ) |1 - ∑ n ∈ A, (1 : ℝ) / n|]
 
 /-- Since $[1, \ldots, N] = e^{(1+o(1))N}$, the trivial bound gives $\delta(N) \ge e^{-(1+o(1))N}$. -/
 @[category textbook, AMS 11]
