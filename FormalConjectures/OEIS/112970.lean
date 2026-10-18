@@ -66,15 +66,21 @@ theorem a_3 : a 3 = 1 := by unfold a; unfold a; rfl
 @[category test, AMS 11]
 theorem a_4 : a 4 = 2 := by unfold a; unfold a; unfold a; unfold a; rfl
 
+/-- The odd case of the recurrence: $a(2k+1) = a(k)$ for $k \ge 1$. -/
+@[category API, AMS 11]
+theorem a_odd (k : ℕ) (hk : 1 ≤ k) : a (2 * k + 1) = a k := by
+  have h1 : (2 * k + 1) / 2 = k := by omega
+  have h2 : (2 * k + 1) % 2 = 1 := by omega
+  rw [a.eq_def]
+  simp [h1, h2, show k ≠ 0 by omega]
+
 /--
 Conjecture: $a(2^n)=a(2^(n+1)+1)=\textrm{A033638}(n)$.
 This formalizes the equality $a(2^n) = a(2^(n+1)+1)$.
 -/
-@[category research solved, AMS 11,
-  formal_proof using lean4 at
-    "https://github.com/KitaKen1/oeis-a112970-formal-conjectures/blob/71ae72f443bd9bee7d958f0a19d9f9ec5ab82af5/lean/OeisA112970FC.lean#L43-L46"]
+@[category research solved, AMS 11]
 theorem conjecture1 (n : ℕ) : a (2^n) = a (2^(n + 1) + 1) := by
-  sorry
+  rw [pow_succ, show 2 ^ n * 2 + 1 = 2 * 2 ^ n + 1 by ring, a_odd _ Nat.one_le_two_pow]
 
 /--
 Second part of the conjecture, $a(2^n)=\textrm{A033638}(n)=\lfloor n^2 / 4 \rfloor + 1$.
@@ -85,21 +91,37 @@ $a(2^m - 2) = \lfloor (m+1)/2 \rfloor$ for $m \ge 1$.
 theorem conjecture1_value (n : ℕ) : a (2^n) = n ^ 2 / 4 + 1 := by
   sorry
 
+/-- Conjecture: $a(2^n-1)=a(3*2^n-1)=1$. This formalizes the value part $a(2^n-1)=1$. -/
+@[category research solved, AMS 11]
+theorem conjecture3 (n : ℕ) : a (2^n - 1) = 1 := by
+  induction n with
+  | zero => simpa using a_0
+  | succ n ih =>
+    rcases Nat.eq_zero_or_pos n with rfl | hn
+    · simpa using a_1
+    · have h : 1 ≤ 2 ^ n - 1 := by
+        have := Nat.one_lt_two_pow_iff.2 hn.ne'
+        omega
+      have h2 : 2 ^ (n + 1) - 1 = 2 * (2 ^ n - 1) + 1 := by
+        rw [pow_succ]
+        omega
+      rw [h2, a_odd _ h, ih]
+
 /--
 Conjecture: $a(2^n-1)=a(3*2^n-1)=1$.
 This formalizes the equality part $a(2^n-1) = a(3*2^n-1)$.
 -/
-@[category research solved, AMS 11,
-  formal_proof using lean4 at
-    "https://github.com/KitaKen1/oeis-a112970-formal-conjectures/blob/71ae72f443bd9bee7d958f0a19d9f9ec5ab82af5/lean/OeisA112970FC.lean#L56-L64"]
+@[category research solved, AMS 11]
 theorem conjecture2 (n : ℕ) : a (2^n - 1) = a (3 * 2^n - 1) := by
-  sorry
-
-/-- Conjecture: $a(2^n-1)=a(3*2^n-1)=1$. This formalizes the value part $a(2^n-1)=1$. -/
-@[category research solved, AMS 11,
-  formal_proof using lean4 at
-    "https://github.com/KitaKen1/oeis-a112970-formal-conjectures/blob/71ae72f443bd9bee7d958f0a19d9f9ec5ab82af5/lean/OeisA112970FC.lean#L48-L54"]
-theorem conjecture3 (n : ℕ) : a (2^n - 1) = 1 := by
-  sorry
+  rw [conjecture3]
+  induction n with
+  | zero => simpa using a_2.symm
+  | succ n ih =>
+    have := Nat.one_le_two_pow (n := n)
+    have h2 : 3 * 2 ^ (n + 1) - 1 = 2 * (3 * 2 ^ n - 1) + 1 := by
+      rw [pow_succ]
+      omega
+    rw [h2, a_odd _ (by omega)]
+    exact ih
 
 end OeisA112970
