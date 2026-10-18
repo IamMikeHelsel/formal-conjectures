@@ -46,15 +46,38 @@ The estimate $u + 2 \le f(u) \le u^2$ holds for every $u \ge 2$. The upper bound
 when $u$ is prime, and the lower bound when $u = 2^k - 2$ with $k \ge 2$; Cambie further showed
 that $f(n) = (1 + o(1))n$ for almost all $n$.
 -/
-@[category research solved, AMS 11, formal_proof using lean4 at "https://github.com/Woett/Lean-files/blob/main/ErdosProblem459.lean"]
+@[category research solved, AMS 11]
 theorem erdos_459 {u : ℕ} (hu : 2 ≤ u) : u + 2 ≤ f u ∧ f u ≤ u ^ 2 := by
-  sorry
+  have hmem : u ^ 2 ∈ {v | u < v ∧ v.primeFactors ⊆ u.primeFactors} :=
+    ⟨by nlinarith, by rw [Nat.primeFactors_pow _ two_ne_zero]⟩
+  refine ⟨le_csInf ⟨_, hmem⟩ ?_, Nat.sInf_le hmem⟩
+  rintro v ⟨hv, hsub⟩
+  by_contra! h
+  obtain rfl : v = u + 1 := by omega
+  obtain ⟨p, hp, hpd⟩ := Nat.exists_prime_and_dvd (show u + 1 ≠ 1 by omega)
+  have hpu : p ∣ u :=
+    Nat.dvd_of_mem_primeFactors (hsub (Nat.mem_primeFactors.2 ⟨hp, hpd, by omega⟩))
+  have : p ∣ 1 := (Nat.dvd_add_right hpu).1 hpd
+  exact hp.one_lt.ne' (Nat.dvd_one.1 this)
 
 /--
 The upper bound $f u ≤ u ^ 2$ is attained exactly when `u` is prime: $f p = p ^ 2$.
 -/
-@[category research solved, AMS 11, formal_proof using lean4 at "https://github.com/Woett/Lean-files/blob/main/ErdosProblem459.lean"]
+@[category research solved, AMS 11]
 theorem erdos_459.variants.upper_tight {p : ℕ} (hp : p.Prime) : f p = p ^ 2 := by
-  sorry
+  have hmem : p ^ 2 ∈ {v | p < v ∧ v.primeFactors ⊆ p.primeFactors} :=
+    ⟨by nlinarith [hp.two_le], by rw [Nat.primeFactors_pow _ two_ne_zero]⟩
+  refine le_antisymm (Nat.sInf_le hmem) (le_csInf ⟨_, hmem⟩ ?_)
+  rintro v ⟨hv, hsub⟩
+  have hv0 : v ≠ 0 := by omega
+  rw [hp.primeFactors] at hsub
+  have hvp := Nat.eq_prime_pow_of_unique_prime_dvd hv0
+    fun {d} hd hdv => by simpa using hsub (Nat.mem_primeFactors.2 ⟨hd, hdv, hv0⟩)
+  obtain ⟨k, rfl⟩ : ∃ k, v = p ^ k := ⟨_, hvp⟩
+  have : 1 < k := by
+    by_contra! h
+    interval_cases k <;> simp at hv
+    exact hp.ne_zero hv
+  exact Nat.pow_le_pow_right hp.pos this
 
 end Erdos459
